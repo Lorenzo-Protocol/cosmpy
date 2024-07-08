@@ -54,12 +54,12 @@ def prepare_and_broadcast_basic_transaction(
     else:
         # we need to build up a representative transaction so that we can accurately simulate it
         tx.seal(
-            SigningCfg.direct(sender.public_key(), account.sequence),
+            SigningCfg.direct(sender.public_key(), account.base_account.sequence),
             fee="",
             gas_limit=0,
             memo=memo,
         )
-        tx.sign(sender.signer(), client.network_config.chain_id, account.number)
+        tx.sign(sender.signer(), client.network_config.chain_id, account.base_account.number)
         tx.complete()
 
         # simulate the gas and fee for the transaction
@@ -67,12 +67,12 @@ def prepare_and_broadcast_basic_transaction(
 
     # finally, build the final transaction that will be executed with the correct gas and fee values
     tx.seal(
-        SigningCfg.direct(sender.public_key(), account.sequence),
+        SigningCfg.direct(sender.public_key(), account.base_account.sequence),
         fee=fee,
         gas_limit=gas_limit,
         memo=memo,
     )
-    tx.sign(sender.signer(), client.network_config.chain_id, account.number)
+    tx.sign(sender.signer(), client.network_config.chain_id, account.base_account.number)
     tx.complete()
 
     return client.broadcast_tx(tx)

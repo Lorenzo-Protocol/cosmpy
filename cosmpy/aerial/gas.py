@@ -84,8 +84,8 @@ class SimulationGasStrategy(GasStrategy):
         :return: block gas limit
         """
         if self._max_gas is None:
-            block_params = self._client.query_params("baseapp", "BlockParams")
-            self._max_gas = int(block_params["max_gas"])
+            # TODO: get max_gas from consensus_params
+            self._max_gas = 80000000000000000000
 
         return self._max_gas or -1
 

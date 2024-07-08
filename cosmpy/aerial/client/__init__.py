@@ -59,7 +59,7 @@ from cosmpy.crypto.address import Address
 from cosmpy.crypto.hashfuncs import sha256
 from cosmpy.distribution.rest_client import DistributionRestClient
 from cosmpy.params.rest_client import ParamsRestClient
-from cosmpy.protos.cosmos.auth.v1beta1.auth_pb2 import BaseAccount
+from cosmpy.protos.ethermint.types.v1.account_pb2 import EthAccount
 from cosmpy.protos.cosmos.auth.v1beta1.query_pb2 import QueryAccountRequest
 from cosmpy.protos.cosmos.auth.v1beta1.query_pb2_grpc import QueryStub as AuthGrpcClient
 from cosmpy.protos.cosmos.bank.v1beta1.query_pb2 import (
@@ -118,12 +118,19 @@ COSMOS_SDK_DEC_COIN_PRECISION = 10**18
 
 
 @dataclass
-class Account:
-    """Account."""
+class BaseAccount:
+    """BaseAccount."""
 
     address: Address
     number: int
     sequence: int
+
+@dataclass
+class Account:
+    """Account."""
+
+    base_account: BaseAccount
+    code_hash: str
 
 
 @dataclass
@@ -310,15 +317,22 @@ class LedgerClient:
         request = QueryAccountRequest(address=str(address))
         response = self.auth.Account(request)
 
-        account = BaseAccount()
-        if not response.account.Is(BaseAccount.DESCRIPTOR):
+        account = EthAccount()
+        if not response.account.Is(EthAccount.DESCRIPTOR):
             raise RuntimeError("Unexpected account type returned from query")
         response.account.Unpack(account)
 
-        return Account(
+        base_account = BaseAccount(
             address=address,
-            number=account.account_number,
-            sequence=account.sequence,
+            number=account.base_account.account_number,
+            sequence=account.base_account.sequence,
+            
+        )
+
+        return Account(
+            base_account = base_account,
+            code_hash= account.code_hash
+            
         )
 
     def query_params(self, subspace: str, key: str) -> Any:
